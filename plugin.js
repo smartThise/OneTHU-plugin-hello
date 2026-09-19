@@ -9,7 +9,7 @@
 export const manifest = {
   id: "onethu.example.hello",
   name: "Hello 示例插件",
-  version: "2.0.0",
+  version: "2.0.1",
   description:
     "特性全景示例：结构化结果、确认/表单弹窗、剪贴板、自建功能页、全局 CSS、原子化收藏、OH 双向联动。可作为开发模板。",
   repo: "https://github.com/smartThise/OneTHU-plugin-hello",
@@ -20,7 +20,12 @@ export const manifest = {
 const TAB_ID = "main";
 const PAGE_KEY = `plugin:${manifest.id}:${TAB_ID}`;
 
+/** 计数状态：模块级变量，激活时从插件私有 storage 恢复（宿主 ctx 上没有约定字段） */
+let count = 0;
+
 export default async function activate(ctx) {
+  count = Number(ctx.onethu.storage.get("count") ?? 0);
+
   /* ────────── ① 全局 CSS（天马行空的样式；作用域规约 [data-plg="<id>"]） ────────── */
   ctx.registerCss(`
     [data-plg="${manifest.id}"] .hello-card {
@@ -57,7 +62,7 @@ export default async function activate(ctx) {
     // 容器可能多次就绪（页面重建）——渲染写成幂等：先清空再挂
     root.innerHTML = "";
     root.dataset.plg = manifest.id;
-    const n = Number(ctx._state.count ?? 0);
+    const n = count;
     root.innerHTML = `
       <div class="hello-card">
         <div class="hello-title">Hello 特性全景</div>
@@ -74,14 +79,14 @@ export default async function activate(ctx) {
         </div>
       </div>`;
     root.querySelector('[data-act="inc"]')?.addEventListener("click", async () => {
-      ctx._state.count = Number(ctx._state.count ?? 0) + 1;
-      ctx.onethu.storage.set("count", String(ctx._state.count));
+      count += 1;
+      ctx.onethu.storage.set("count", String(count));
       const card = root.querySelector(".hello-card");
-      if (card) card.querySelector(".hello-streak").textContent = String(ctx._state.count);
+      if (card) card.querySelector(".hello-streak").textContent = String(count);
     });
     root.querySelector('[data-act="fav"]')?.addEventListener("click", async () => {
       // 收藏进用户收藏夹：kind 自动补全为本插件；展示元数据走 registerAtom.resolve
-      ctx.onethu.favorites.add(`main~count:${ctx._state.count ?? 0}`);
+      ctx.onethu.favorites.add(`main~count:${count}`);
       ctx.onethu.ui.toast("已收进收藏夹");
     });
     root.querySelector('[data-act="copy"]')?.addEventListener("click", async () => {
@@ -141,7 +146,7 @@ export default async function activate(ctx) {
         { title: "表格", subtitle: "markdown 区块", meta: "支持 GFM 语法" },
         { title: "条目卡片", subtitle: "items 区块", meta: "title 必填，subtitle/meta 可选" },
       ],
-      kv: [{ k: "插件版本", v: manifest.version }, { k: "当前计数", v: String(ctx._state.count ?? 0) }],
+      kv: [{ k: "插件版本", v: manifest.version }, { k: "当前计数", v: String(count) }],
     };
   });
 
@@ -175,7 +180,7 @@ export default async function activate(ctx) {
   ctx.registerCommand({ id: "confirm-danger", title: "危险确认演示" }, async () => {
     const yes = await ctx.onethu.ui.confirm("这会清空 Hello 的计数，确定？", { danger: true });
     if (yes) {
-      ctx._state.count = 0;
+      count = 0;
       ctx.onethu.storage.set("count", "0");
       return "计数已清零";
     }

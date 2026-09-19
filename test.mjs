@@ -11,11 +11,11 @@ const eq = (name, a, b) => {
 };
 
 /* ── mock 宿主 ── */
-const store = new Map();
+const storeMap = new Map();
 const registered = { commands: new Map(), tabs: [], css: [], atoms: [] };
 const calls = [];
+const storeMap = new Map();
 const ctx = {
-  _state: {},
   registerCommand: (cmd, run) => registered.commands.set(cmd.id, { cmd, run }),
   registerTab: (t) => registered.tabs.push(t),
   registerCss: (css) => registered.css.push(css),
@@ -31,7 +31,7 @@ const ctx = {
       getTabRoot: () => null,
       onTabReady: (k, cb) => { calls.push(["tabready", k]); return () => {}; },
     },
-    storage: { set: (k, v) => store.set(k, v), get: (k) => store.get(k) ?? null },
+    storage: { set: (k, v) => storeMap.set(k, v), get: (k) => storeMap.get(k) ?? null },
     plugins: {
       call: async (pid, cid, input) => { calls.push(["plugins.call", pid, cid, input]); return { answer: "我是 OH" }; },
       list: async () => [],
