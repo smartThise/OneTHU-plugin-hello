@@ -3,6 +3,7 @@ export const manifest = {
   name: "Hello 示例插件",
   version: "1.0.0",
   description: "最小示例：展示 onethu.* 基本用法，可作为开发模板",
+  repo: "https://github.com/smartThise/OneTHU-plugin-hello",
   permissions: ["user:read"],
 };
 
