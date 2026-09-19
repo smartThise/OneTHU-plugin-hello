@@ -9,12 +9,13 @@
 export const manifest = {
   id: "onethu.example.hello",
   name: "Hello 示例插件",
-  version: "2.0.1",
+  version: "2.0.2",
   description:
     "特性全景示例：结构化结果、确认/表单弹窗、剪贴板、自建功能页、全局 CSS、原子化收藏、OH 双向联动。可作为开发模板。",
   repo: "https://github.com/smartThise/OneTHU-plugin-hello",
-  // ui=弹窗/表单/剪贴板写/收藏；css=注入全局样式（安装确认会重点说明）
-  permissions: ["user:read", "ui", "css"],
+  // ui=弹窗/表单/剪贴板写/收藏/tab；css=注入全局样式（安装确认重点说明）；
+  // storage=计数状态持久化（activate 里 storage.get/set 的运行时门禁）
+  permissions: ["user:read", "ui", "css", "storage"],
 };
 
 const TAB_ID = "main";

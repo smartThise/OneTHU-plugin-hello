@@ -43,6 +43,7 @@ const ctx = {
 eq("id", manifest.id, "onethu.example.hello");
 eq("permissions 含 ui", manifest.permissions.includes("ui"), true);
 eq("permissions 含 css", manifest.permissions.includes("css"), true);
+eq("permissions 含 storage", manifest.permissions.includes("storage"), true);
 
 /* ── 断言：activate 注册齐全 ── */
 await activate(ctx);
