@@ -14,7 +14,6 @@ const eq = (name, a, b) => {
 const storeMap = new Map();
 const registered = { commands: new Map(), tabs: [], css: [], atoms: [] };
 const calls = [];
-const storeMap = new Map();
 const ctx = {
   registerCommand: (cmd, run) => registered.commands.set(cmd.id, { cmd, run }),
   registerTab: (t) => registered.tabs.push(t),
@@ -74,7 +73,7 @@ eq("hello-oh 文案", (await registered.commands.get("hello-oh").run()).includes
 const cp = await registered.commands.get("copy-greet").run();
 eq("copy-greet 写剪贴板", calls.some((c) => c[0] === "copy" && String(c[1]).includes("测试同学")), true);
 eq("danger 确认", (await registered.commands.get("confirm-danger").run()), "计数已清零");
-eq("storage 落盘", store.get("count"), "0");
+eq("storage 落盘", storeMap.get("count"), "0");
 
 /* ── 断言：收藏链路 ── */
 ctx.onethu.favorites.add("main~count:5");
