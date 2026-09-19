@@ -19,11 +19,11 @@ OneTHU 插件市场收录的示例插件：**插件特性全景展示**（v2.0�
 ## 文件
 
 - `plugin.js`：插件本体（单文件 ES 模块：`manifest` 导出 + 默认导出激活函数），分节注释对应各特性
-- `test.mjs`：离线测试（mock 宿主 ctx，30 断言），`node test.mjs` 直跑
+- `test.mjs`：离线测试（mock 宿主 ctx，32 断言），`node test.mjs` 直跑
 
 ## 安装
 
 OneTHU → 插件 → 安装面板「GitHub 仓库」输入 `smartThise/OneTHU-plugin-hello`。
 （从 1.x 升级：管理页 Hello 卡片出现更新按钮，覆盖安装即可）
 
-开发文档见 OneTHU 主仓库 `docs/plugin-development.md`（§6 UI 通道与结构化结果、§6.3 自建功能页、§6.4 原子化收藏、§9.3 OH 联动）。
+开发文档见 OneTHU 主仓库 `docs/plugin-development.md`（§6 UI 通道与结构化结果、§6.3 自建功能页、§6.4 原子化收藏、§9.4 OH 联动）。
