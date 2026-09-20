@@ -61,3 +61,12 @@ OneTHU → 插件 → 安装面板「GitHub 仓库」输入 `smartThise/OneTHU-p
 - [插件开发指南](https://github.com/smartThise/OneTHU/blob/dev3/docs/plugin-development.md)：§6 UI 通道与结构化结果、§6.3 自建功能页、§6.4 原子化收藏、§6.5 声明式桌面小组件、§6.6 系统通知、§9.4 OH 联动
 - [API 参考](https://github.com/smartThise/OneTHU/blob/dev3/docs/api-reference.md)：`ctx.onethu.*` 逐方法说明
 - [架构说明](https://github.com/smartThise/OneTHU/blob/dev3/docs/architecture.md)：数据层、通知与小组件的整体设计
+
+## 许可
+
+本示例插件以 **MIT** 许可开源（见 [LICENSE](./LICENSE)），可自由用于任何目的，包括商业用途。
+
+主程序 OneTHU 自身的许可与随包分发的第三方组件另有约定（自有代码 MIT + 两条使用限制；
+THU Info App / thu-info-lib 部分受非商业用途授权约束、LearnX 移植部分受其例外条件约束），
+见主仓库 [LICENSE](https://github.com/smartThise/OneTHU/blob/dev3/LICENSE) 与
+[LICENSES/THIRD-PARTY.md](https://github.com/smartThise/OneTHU/blob/dev3/LICENSES/THIRD-PARTY.md)。
