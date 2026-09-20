@@ -9,13 +9,14 @@
 export const manifest = {
   id: "onethu.example.hello",
   name: "Hello 示例插件",
-  version: "2.0.3",
+  version: "2.1.0",
   description:
-    "特性全景示例：结构化结果、确认/表单弹窗、剪贴板、自建功能页、全局 CSS、原子化收藏、OH 双向联动。可作为开发模板。",
+    "特性全景示例：结构化结果、确认/表单弹窗、剪贴板、自建功能页、全局 CSS、原子化收藏、桌面小组件、系统通知、OH 双向联动。可作为开发模板。",
   repo: "https://github.com/smartThise/OneTHU-plugin-hello",
   // ui=弹窗/表单/剪贴板写/收藏/tab；css=注入全局样式（安装确认重点说明）；
-  // storage=计数状态持久化；plugins:call=正向调 OH（ask-oh 命令）
-  permissions: ["user:read", "ui", "css", "storage", "plugins:call"],
+  // storage=计数状态持久化；plugins:call=正向调 OH（ask-oh 命令）；
+  // widget=声明桌面小组件（Android）；notify=发系统通知（三端）
+  permissions: ["user:read", "ui", "css", "storage", "plugins:call", "widget", "notify"],
 };
 
 const TAB_ID = "main";
@@ -52,7 +53,21 @@ export default async function activate(ctx) {
     },
   });
 
-  /* ────────── ③ 自建功能页（tab）：侧栏出现「Hello」入口，容器内全权渲染 ────────── */
+  /* ────────── ③ 桌面小组件（Android）：声明「显示什么」，渲染由宿主与原生完成 ──────────
+     插件代码在桌面上跑不起来（小组件由 AppWidgetHolder 在独立进程渲染，没有 WebView 与
+     会话），所以这里只能声明。宿主预留 3 个槽位，按声明顺序占位；用户把「OneTHU 插件
+     小组件 1」放到桌面即可看到本卡片。rows 里的 { atom } 会走上面注册的原子解析。 */
+  ctx.registerWidget({
+    id: "streak",
+    title: `Hello 计数 ${count}`,
+    rows: [
+      { atom: `main~count:${count}` },              // 原子行：宿主解析出标题与说明
+      { text: "特性全景示例", sub: "来自 Hello 插件" },  // 字面行
+    ],
+    target: PAGE_KEY,                                // 点击回本插件功能页
+  });
+
+  /* ────────── ④ 自建功能页（tab）：侧栏出现「Hello」入口，容器内全权渲染 ────────── */
   ctx.registerTab({
     id: TAB_ID,
     title: "Hello",
@@ -175,6 +190,52 @@ export default async function activate(ctx) {
     const u = await ctx.onethu.session.username();
     await ctx.onethu.ui.clipboard.write(`Hello, ${u ?? "OneTHU"}!`);
     return "已复制到剪贴板";
+  });
+
+  // 系统通知（三端）：排一条 10 秒后的通知，顺带演示结构化结果
+  ctx.registerCommand({ id: "notify-me", title: "发一条系统通知（10 秒后）" }, async () => {
+    const r = await ctx.onethu.notify.send({
+      title: "Hello 通知",
+      body: `当前计数 ${count}`,
+      afterSeconds: 10,
+      key: "demo",                 // 同 key 覆盖同一条，重复点不会堆一堆
+      page: PAGE_KEY,              // 点击回到本插件功能页
+    });
+    if (!r.ok) {
+      // 失败时顺手查状态并请求授权（用户点这个命令就是明确意图，弹系统框不唐突）
+      const st = await ctx.onethu.notify.status(true);
+      return {
+        text: `发送失败：${r.reason ?? "未知原因"}`,
+        kv: [
+          { k: "平台后端", v: st.backend },
+          { k: "已授权", v: st.granted ? "是" : "否" },
+        ],
+      };
+    }
+    return {
+      text: "已排程，约 10 秒后弹出系统通知",
+      items: [
+        { title: "通知 id", subtitle: r.id, meta: "同 key 重复发送会覆盖" },
+        { title: "点击通知", subtitle: `会回到 ${PAGE_KEY}`, meta: "落点深链" },
+      ],
+      kv: [{ k: "平台", v: (await ctx.onethu.notify.status()).backend }],
+    };
+  });
+
+  // 桌面小组件槽位查询：告诉用户该把哪个「OneTHU 插件小组件 N」放到桌面
+  ctx.registerCommand({ id: "widget-slot", title: "我的小组件占哪个槽位" }, async () => {
+    const mine = ctx.onethu.widget.list();
+    const total = ctx.onethu.widget.slots();
+    if (!mine.length) return "本插件没有声明小组件";
+    const occupied = mine.filter((w) => w.slot);
+    return {
+      text: `共 ${total} 个槽位，本插件占用 ${occupied.length} 个`,
+      items: mine.map((w) => ({
+        title: w.title,
+        subtitle: w.slot ? `放到桌面：「OneTHU 插件小组件 ${w.slot}」` : "未占槽位（槽位被更早的插件占满）",
+        meta: `id ${w.id}`,
+      })),
+    };
   });
 
   // 确认弹窗（danger 样式演示）

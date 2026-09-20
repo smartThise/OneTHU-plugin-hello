@@ -9,16 +9,18 @@ const eq = (name, a, b) => {
   if (JSON.stringify(a) === JSON.stringify(b)) pass++;
   else { fail++; console.error(`✗ ${name}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`); }
 };
+const ok = (name, cond) => eq(name, !!cond, true);
 
 /* ── mock 宿主 ── */
 const storeMap = new Map();
-const registered = { commands: new Map(), tabs: [], css: [], atoms: [] };
+const registered = { commands: new Map(), tabs: [], css: [], atoms: [], widgets: [] };
 const calls = [];
 const ctx = {
   registerCommand: (cmd, run) => registered.commands.set(cmd.id, { cmd, run }),
   registerTab: (t) => registered.tabs.push(t),
   registerCss: (css) => registered.css.push(css),
   registerAtom: (def) => registered.atoms.push(def),
+  registerWidget: (def) => registered.widgets.push(def),
   log: () => {},
   onethu: {
     session: { username: async () => "测试同学" },
@@ -36,6 +38,15 @@ const ctx = {
       list: async () => [],
     },
     favorites: { add: (key) => calls.push(["fav", key]), list: () => [] },
+    notify: {
+      send: async (opts) => { calls.push(["notify.send", opts]); return { ok: true, id: `plugin:onethu.example.hello:${opts.key}` }; },
+      cancel: async (key) => { calls.push(["notify.cancel", key]); return true; },
+      status: async (request) => { calls.push(["notify.status", request === true]); return { ok: true, backend: "android", granted: true, exact: true }; },
+    },
+    widget: {
+      list: () => registered.widgets.map((w, i) => ({ id: w.id, title: w.title, slot: String(i + 1) })),
+      slots: () => 3,
+    },
   },
 };
 
@@ -80,6 +91,36 @@ eq("storage 落盘", storeMap.get("count"), "0");
 /* ── 断言：收藏链路 ── */
 ctx.onethu.favorites.add("main~count:5");
 eq("favorites.add 调用", calls.some((c) => c[0] === "fav" && c[1] === "main~count:5"), true);
+
+/* ── 小组件声明（2.1.0 新增）：声明式、含原子行与字面行、落点指回功能页 ── */
+eq("小组件已声明", registered.widgets.length, 1);
+eq("小组件 id", registered.widgets[0].id, "streak");
+eq("小组件标题带当前计数", registered.widgets[0].title.startsWith("Hello 计数 "), true);
+eq("小组件含原子行", registered.widgets[0].rows.some((r) => typeof r.atom === "string"), true);
+eq("小组件含字面行", registered.widgets[0].rows.some((r) => typeof r.text === "string"), true);
+eq("小组件落点指回本插件功能页", registered.widgets[0].target, "plugin:onethu.example.hello:main");
+eq("permissions 含 widget", manifest.permissions.includes("widget"), true);
+eq("permissions 含 notify", manifest.permissions.includes("notify"), true);
+
+/* ── 系统通知命令：载荷正确、返回结构化结果 ── */
+{
+  calls.length = 0;
+  const r = await registered.commands.get("notify-me").run("");
+  const sent = calls.find((c) => c[0] === "notify.send");
+  ok("调用了 notify.send", !!sent);
+  eq("通知有标题", sent[1].title, "Hello 通知");
+  eq("10 秒后投递", sent[1].afterSeconds, 10);
+  eq("同 key 覆盖", sent[1].key, "demo");
+  eq("落点为功能页", sent[1].page, "plugin:onethu.example.hello:main");
+  eq("成功时返回结构化结果", typeof r === "object" && !!r.text && Array.isArray(r.items), true);
+}
+
+/* ── 槽位查询命令：把「放到哪个小组件」讲清楚 ── */
+{
+  const r = await registered.commands.get("widget-slot").run("");
+  ok("槽位命令返回结构化结果", typeof r === "object" && Array.isArray(r.items));
+  ok("提示了槽位编号", JSON.stringify(r.items[0]).includes("OneTHU 插件小组件 1"));
+}
 
 console.log(`结果：${pass} 通过 / ${fail} 失败`);
 process.exit(fail ? 1 : 0);

@@ -1,6 +1,6 @@
 # OneTHU-plugin-hello
 
-OneTHU 插件市场收录的示例插件：**插件特性全景展示**（v2.0），亦是新插件的开发模板。
+OneTHU 插件市场收录的示例插件：**插件特性全景展示**（v2.1），亦是新插件的开发模板。
 
 ## 特性覆盖
 
@@ -15,15 +15,17 @@ OneTHU 插件市场收录的示例插件：**插件特性全景展示**（v2.0�
 | 原子化收藏（万物原子化体系） | 功能页「收藏当前计数」→ 收藏夹出现卡片 |
 | OH 联动（反向被调） | 对 OH 说「用 Hello 插件打个招呼」→ `run_plugin_cmd` |
 | OH 联动（正向调用） | 命令「问 OH 一句话」→ `plugins.call("onethu.harness","chat")` |
+| 桌面小组件（Android） | `registerWidget` 声明式小组件；命令「我的小组件占哪个槽位」告诉你把哪个「OneTHU 插件小组件 N」放到桌面 |
+| 系统通知（三端） | 命令「发一条系统通知（10 秒后）」→ `onethu.notify.send`，点通知回到本插件功能页 |
 
 ## 文件
 
 - `plugin.js`：插件本体（单文件 ES 模块：`manifest` 导出 + 默认导出激活函数），分节注释对应各特性
-- `test.mjs`：离线测试（mock 宿主 ctx，32 断言），`node test.mjs` 直跑
+- `test.mjs`：离线测试（mock 宿主 ctx，48 断言），`node test.mjs` 直跑
 
 ## 安装
 
 OneTHU → 插件 → 安装面板「GitHub 仓库」输入 `smartThise/OneTHU-plugin-hello`。
 （从 1.x 升级：管理页 Hello 卡片出现更新按钮，覆盖安装即可）
 
-开发文档见 OneTHU 主仓库 `docs/plugin-development.md`（§6 UI 通道与结构化结果、§6.3 自建功能页、§6.4 原子化收藏、§9.4 OH 联动）。
+开发文档见 OneTHU 主仓库 `docs/plugin-development.md`（§6 UI 通道与结构化结果、§6.3 自建功能页、§6.4 原子化收藏、§6.5 声明式桌面小组件、§6.6 系统通知、§9.4 OH 联动）。
