@@ -9,7 +9,7 @@
 export const manifest = {
   id: "onethu.example.hello",
   name: "Hello 示例插件",
-  version: "2.1.0",
+  version: "2.1.1",
   description:
     "特性全景示例：结构化结果、确认/表单弹窗、剪贴板、自建功能页、全局 CSS、原子化收藏、桌面小组件、系统通知、OH 双向联动。可作为开发模板。",
   repo: "https://github.com/smartThise/OneTHU-plugin-hello",
@@ -111,7 +111,10 @@ export default async function activate(ctx) {
       ctx.onethu.ui.toast("已复制问候语");
     });
     root.querySelector('[data-act="confirm"]')?.addEventListener("click", async () => {
-      const yes = await ctx.onethu.ui.confirm("这是一个应用内确认弹窗（Promise 化）。\n危险操作可传 {danger: true} 换红色样式。", { danger: false });
+      const yes = await ctx.onethu.ui.confirm(
+        "这是一个应用内确认弹窗（Promise 化）。\n危险操作可传 {danger: true} 换红色样式，并用 {title, confirmText} 自定标题与确认按钮。",
+        { danger: false },
+      );
       ctx.onethu.ui.toast(yes ? "你点了确认" : "你取消了");
     });
   });
@@ -240,7 +243,14 @@ export default async function activate(ctx) {
 
   // 确认弹窗（danger 样式演示）
   ctx.registerCommand({ id: "confirm-danger", title: "危险确认演示" }, async () => {
-    const yes = await ctx.onethu.ui.confirm("这会清空 Hello 的计数，确定？", { danger: true });
+    // 危险样式建议显式给 title / confirmText：宿主的兜底文案是「此操作不可撤销，请确认
+    // / 确认执行」，写死场景措辞会让不同场景串味（宿主侧 R21c 实录：忽略作业弹窗曾整屏
+    // 显示退选文案）。
+    const yes = await ctx.onethu.ui.confirm("这会清空 Hello 的计数，确定？", {
+      danger: true,
+      title: "清空计数，请确认！",
+      confirmText: "确认清空",
+    });
     if (yes) {
       count = 0;
       ctx.onethu.storage.set("count", "0");
